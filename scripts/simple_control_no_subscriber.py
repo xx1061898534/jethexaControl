@@ -101,7 +101,29 @@ class jetHexaBasicMotion:
         msg.angular.z = angular_z
         rospy.sleep(1)
         self.vel_pub.publish(msg)
-
+    def execute_motion_sequence(self):
+        self.start_recording()  # Start recording
+        rospy.sleep(1)
+        self.forward(0)
+        rospy.sleep(10)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(30)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(10)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(30)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.stop()
+        rospy.sleep(1)
+        self.stop_recording()  # Stop recording
+   
     def move_in_triangle(self):
         rospy.loginfo("Starting triangular movement")
         # Move forward
