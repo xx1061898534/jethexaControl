@@ -168,12 +168,27 @@ class jetHexaBasicMotion:
         self.stop()
         rospy.sleep(1)
         self.stop_recording()  # Stop recording
+    def move_in_triangle(self):
+        rospy.loginfo("Starting triangular movement")
+        # Move forward
+        self.cmd_vel_Publisher(linear_x=0.05, linear_y=0.0, angular_z=0.0)
+        rospy.sleep(10)  # Adjust sleep time based on side length
+
+        # Rotate 120 degrees (2π/3 radians) for the triangle
+        self.cmd_vel_Publisher(linear_x=-0.025, linear_y=0.05, angular_z=0)
+        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        self.cmd_vel_Publisher(linear_x=0, linear_y=-0.05, angular_z=0)
+        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.0, angular_z=0)
+        self.stop()
+        rospy.loginfo("Finished triangular movement")
 
 if __name__ == "__main__":
     output_file = "/home/hiwonder/jethexa_vm/model_states_data.txt"
     robot = jetHexaBasicMotion(output_file)
     rospy.sleep(1)
-    robot.execute_motion_sequence()
+    #robot.execute_motion_sequence()
+    robot.move_in_triangle()
 
 
 
