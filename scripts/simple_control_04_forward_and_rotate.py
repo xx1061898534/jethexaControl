@@ -7,6 +7,7 @@ import nav_msgs.msg as nav_msgs
 from scipy.spatial.transform import Rotation as R
 from geometry_msgs.msg import Quaternion, Point, Vector3, TransformStamped, TwistWithCovarianceStamped,Twist
 from gazebo_msgs.msg import ModelStates
+import csv  # Add this import for CSV handling
 #
 from jethexa_controller_interfaces import msg as jetmsg
 from jethexa_controller_interfaces.msg import Traveling
@@ -31,6 +32,7 @@ class jetHexaBasicMotion:
         # Initialize recording variables
         self.recording = False
         self.output_file = output_file
+        self.csv_initialized = False  # Track if the CSV header is written
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
         rospy.loginfo("Subscribed to /gazebo/model_states")
 
@@ -135,13 +137,24 @@ class jetHexaBasicMotion:
         if not self.recording:
             return
         try:
-            with open(self.output_file, 'a') as file:
+            with open(self.output_file, 'a', newline='') as file:
+                writer = csv.writer(file)
+                if not self.csv_initialized:
+                    # Write the CSV header
+                    writer.writerow(['Time', 'Position_X', 'Position_Y', 'Position_Z', 
+                                     'Orientation_X', 'Orientation_Y', 'Orientation_Z', 'Orientation_W'])
+                    self.csv_initialized = True
+
                 for i, model_name in enumerate(data.name):  # Iterate over model names
-                    if model_name == "jethexa":  # Replace "robot" with your robot's model name
+                    if model_name == "jethexa":  # Replace "jethexa" with your robot's model name
                         position = data.pose[i].position
                         orientation = data.pose[i].orientation
-                        file.write(f"Position: {position}, \nOrientation: {orientation}\n")
-                        rospy.loginfo(f"Robot Pose - Position: {position},\n Orientation: {orientation}")
+                        writer.writerow([
+                            rospy.get_time(),  # Timestamp
+                            position.x, position.y, position.z,  # Position
+                            orientation.x, orientation.y, orientation.z, orientation.w  # Orientation
+                        ])
+                        rospy.loginfo(f"Robot Pose - Position: {position}, Orientation: {orientation}")
                         break  # Exit loop after finding the robot
         except Exception as e:
             rospy.logerr(f"Failed to write data to file: {e}")
@@ -184,7 +197,7 @@ class jetHexaBasicMotion:
         rospy.loginfo("Finished triangular movement")
 
 if __name__ == "__main__":
-    output_file = "/home/hiwonder/jethexa_vm/model_states_data.txt"
+    output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data.csv"#/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts
     robot = jetHexaBasicMotion(output_file)
     rospy.sleep(1)
     #robot.execute_motion_sequence()
