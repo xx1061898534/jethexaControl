@@ -17,12 +17,12 @@ class jetHexaBasicMotion:
 
     def forward(self, step):
         msg = Traveling()
-        msg.gait = 1
+        msg.gait = 2
         msg.stride = 40.0
         msg.height = 15.0
         msg.direction = 0
         msg.rotation = 0
-        msg.time = 0.8
+        msg.time = 0.6
         msg.steps = step
         msg.relative_height = False
         msg.interrupt = False
