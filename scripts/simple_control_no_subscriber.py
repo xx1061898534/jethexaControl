@@ -128,13 +128,13 @@ class jetHexaBasicMotion:
         rospy.loginfo("Starting triangular movement")
         # Move forward
         self.cmd_vel_Publisher(linear_x=0.05, linear_y=0.0, angular_z=0.0)
-        rospy.sleep(10)  # Adjust sleep time based on side length
+        rospy.sleep(8)  # Adjust sleep time based on side length
 
         # Rotate 120 degrees (2π/3 radians) for the triangle
         self.cmd_vel_Publisher(linear_x=-0.025, linear_y=0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        rospy.sleep(16)  # Adjust sleep time based on angular speed
         self.cmd_vel_Publisher(linear_x=0, linear_y=-0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        rospy.sleep(16)  # Adjust sleep time based on angular speed
         self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.0, angular_z=0)
         self.stop()
         rospy.loginfo("Finished triangular movement")
