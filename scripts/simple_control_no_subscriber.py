@@ -17,12 +17,12 @@ class jetHexaBasicMotion:
 
     def forward(self, step):
         msg = Traveling()
-        msg.gait = 1
+        msg.gait = 2
         msg.stride = 40.0
         msg.height = 15.0
         msg.direction = 0
         msg.rotation = 0
-        msg.time = 0.8
+        msg.time = 0.6
         msg.steps = step
         msg.relative_height = False
         msg.interrupt = False
@@ -101,18 +101,40 @@ class jetHexaBasicMotion:
         msg.angular.z = angular_z
         rospy.sleep(1)
         self.vel_pub.publish(msg)
-
+    def execute_motion_sequence(self):
+        self.start_recording()  # Start recording
+        rospy.sleep(1)
+        self.forward(0)
+        rospy.sleep(10)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(30)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(10)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.forward(0)
+        rospy.sleep(30)  # Simulate some process
+        self.rotation(1, 0)
+        rospy.sleep(21)
+        self.stop()
+        rospy.sleep(1)
+        self.stop_recording()  # Stop recording
+   
     def move_in_triangle(self):
         rospy.loginfo("Starting triangular movement")
         # Move forward
         self.cmd_vel_Publisher(linear_x=0.05, linear_y=0.0, angular_z=0.0)
-        rospy.sleep(10)  # Adjust sleep time based on side length
+        rospy.sleep(8)  # Adjust sleep time based on side length
 
         # Rotate 120 degrees (2π/3 radians) for the triangle
         self.cmd_vel_Publisher(linear_x=-0.025, linear_y=0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        rospy.sleep(16)  # Adjust sleep time based on angular speed
         self.cmd_vel_Publisher(linear_x=0, linear_y=-0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
+        rospy.sleep(16)  # Adjust sleep time based on angular speed
         self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.0, angular_z=0)
         self.stop()
         rospy.loginfo("Finished triangular movement")
