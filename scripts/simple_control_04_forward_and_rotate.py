@@ -23,7 +23,7 @@ import geometry_msgs.msg
 class jetHexaBasicMotion:
     def __init__(self, output_file):
         #inital control node
-        rospy.init_node("jethexa_basic_motion", anonymous=True, log_level=rospy.INFO)
+        rospy.init_node("jethexa_basic_motion", anonymous=False, log_level=rospy.INFO)
 
         #build publisher
         self.traveling_pub = rospy.Publisher('/jethexa_controller/traveling', Traveling, queue_size=10)
@@ -32,6 +32,7 @@ class jetHexaBasicMotion:
         # Initialize recording variables
         self.recording = False
         self.output_file = output_file
+        self.start_time = rospy.get_time()  # Record the start time
         self.csv_initialized = False  # Track if the CSV header is written
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
         rospy.loginfo("Subscribed to /gazebo/model_states")
@@ -141,7 +142,7 @@ class jetHexaBasicMotion:
                 writer = csv.writer(file)
                 if not self.csv_initialized:
                     # Write the CSV header
-                    writer.writerow(['Time', 'Position_X', 'Position_Y', 'Position_Z', 
+                    writer.writerow(['Elapsed_Time', 'Position_X', 'Position_Y', 'Position_Z', 
                                      'Orientation_X', 'Orientation_Y', 'Orientation_Z', 'Orientation_W'])
                     self.csv_initialized = True
 
@@ -149,12 +150,13 @@ class jetHexaBasicMotion:
                     if model_name == "jethexa":  # Replace "jethexa" with your robot's model name
                         position = data.pose[i].position
                         orientation = data.pose[i].orientation
+                        elapsed_time = rospy.get_time() - self.start_time  # Calculate elapsed time
                         writer.writerow([
-                            rospy.get_time(),  # Timestamp
+                            elapsed_time,  # Elapsed time since the script started
                             position.x, position.y, position.z,  # Position
                             orientation.x, orientation.y, orientation.z, orientation.w  # Orientation
                         ])
-                        rospy.loginfo(f"Robot Pose - Position: {position}, Orientation: {orientation}")
+                        rospy.loginfo(f"Robot Pose - Elapsed Time: {elapsed_time}, Position: {position}, Orientation: {orientation}")
                         break  # Exit loop after finding the robot
         except Exception as e:
             rospy.logerr(f"Failed to write data to file: {e}")
@@ -200,8 +202,10 @@ if __name__ == "__main__":
     output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data.csv"#/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts
     robot = jetHexaBasicMotion(output_file)
     rospy.sleep(1)
+    robot.start_recording()  # Ensure recording starts
     #robot.execute_motion_sequence()
     robot.move_in_triangle()
+    robot.stop_recording()  # Ensure recording stops
 
 
 
