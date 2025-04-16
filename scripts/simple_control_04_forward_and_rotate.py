@@ -123,7 +123,7 @@ class jetHexaBasicMotion:
         msg.linear.x=linear_x
         msg.linear.y=linear_y
         msg.angular.z=angular_z
-        rospy.sleep(1)
+        #rospy.sleep(1)
         self.vel_pub.publish(msg)
 
     def start_recording(self):
