@@ -56,6 +56,6 @@ def plot_position_xy(csv_file):
 
 if __name__ == "__main__":
     # Path to the CSV file
-    csv_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data_1.csv"
-    plot_model_states_data(csv_file)
+    csv_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data_para.csv"
+    #plot_model_states_data(csv_file)
     plot_position_xy(csv_file)

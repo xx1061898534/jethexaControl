@@ -38,7 +38,7 @@ class jetHexaBasicMotion:
         self.csv_initialized = False  # Track if the CSV header is written
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
         rospy.loginfo("Subscribed to /gazebo/model_states")
-        #self.rate = rospy.Rate(25)  # Set rate to 25 Hz
+        self.rate = rospy.Rate(10)  # Set rate to 25 Hz
 
     def forward(self,step):
         msg=Traveling()
@@ -160,11 +160,11 @@ class jetHexaBasicMotion:
                             position.x, position.y, position.z,  # Position
                             orientation.x, orientation.y, orientation.z, orientation.w  # Orientation
                         ])
-                        rospy.loginfo(f"Robot Pose - Elapsed Time: {elapsed_time}, Position: {position}, Orientation: {orientation}")
+                       # rospy.loginfo(f"Robot Pose - Elapsed Time: {elapsed_time}, Position: {position}, Orientation: {orientation}")
                         break  # Exit loop after finding the robot
         except Exception as e:
             rospy.logerr(f"Failed to write data to file: {e}")
-        rospy.sleep(0.1)
+        #rospy.sleep(0.1)
 
     def execute_motion_sequence(self):
         self.start_recording()  # Start recording
@@ -191,24 +191,33 @@ class jetHexaBasicMotion:
     def move_in_triangle(self):
         rospy.loginfo("Starting triangular movement")
         # Move forward
-        self.cmd_vel_Publisher(linear_x=0.05, linear_y=0.0, angular_z=0.0)
-        rospy.sleep(10)  # Adjust sleep time based on side length
-
-        # Rotate 120 degrees (2π/3 radians) for the triangle
-        self.cmd_vel_Publisher(linear_x=-0.025, linear_y=0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
-        self.cmd_vel_Publisher(linear_x=0, linear_y=-0.05, angular_z=0)
-        rospy.sleep(20)  # Adjust sleep time based on angular speed
-        self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.0, angular_z=0)
+        for i in range(4):
+          #self.stop()
+          #rospy.sleep(1)
+          self.cmd_vel_Publisher(linear_x=0.05, linear_y=0.0, angular_z=0.0)
+          rospy.sleep(20)  # Adjust sleep time based on side length
+          #self.stop()
+          #rospy.sleep(1)
+          self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.00, angular_z=0.2)
+          rospy.sleep(14)
+          
+        # self.cmd_vel_Publisher(linear_x=-0.025, linear_y=0.05, angular_z=0)
+        # rospy.sleep(40)  # Adjust sleep time based on angular speed
+        # self.cmd_vel_Publisher(linear_x=0, linear_y=-0.05, angular_z=0)
+        # rospy.sleep(40)  # Adjust sleep time based on angular speed
+        # self.cmd_vel_Publisher(linear_x=0.0, linear_y=0.0, angular_z=0)
         self.stop()
         rospy.loginfo("Finished triangular movement")
 
 if __name__ == "__main__":
-    output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data_1.csv"
+    output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data_para.csv"
     trajectory_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/trajectory_data.csv"  # New CSV file for x1, y1
     robot = jetHexaBasicMotion(output_file)
-    x1, vx, t1 = parabolicBlends([0, 0,0, 100, 0], [10,20, 20, 20], 3, 0.1)
-    y1, vy, t2 = parabolicBlends([0, 0,50, 0, 0], [10, 20, 20, 20], 3, 0.1)
+    #x1, vx, t1 = parabolicBlends([0, 0, 0.5, 0,  0], [10,20, 20, 20], 0.01, 0.1)
+    #y1, vy, t2 = parabolicBlends([0, 0, 0,  1, 0], [10, 20, 20, 20], 0.01, 0.1)
+    x1,v1, t1 = parabolicBlends([0,300*math.cos(math.radians(234)), 100*math.cos(math.radians(198)),300*math.cos(math.radians(162)), 100*math.cos(math.radians(126)), 300*math.cos(math.radians(90)), 100*math.cos(math.radians(54)), 300*math.cos(math.radians(18)), 100*math.cos(math.radians(342)),300*math.cos(math.radians(306)),0 ], [10,10,10,10,10,10,10,10,10,10], 3, 0.04)
+    y1,vy, t2 = parabolicBlends([-100,300*math.sin(math.radians(234)), 100*math.sin(math.radians(198)),300*math.sin(math.radians(162)), 100*math.sin(math.radians(126)), 300*math.sin(math.radians(90)), 100*math.sin(math.radians(54)), 300*math.sin(math.radians(18)), 100*math.sin(math.radians(342)),300*math.sin(math.radians(306)),-100], [10,10,10,10,10,10,10,10,10,10], 3, 0.04)  
+   
 
     # Record x1 and y1 to a new CSV file
     try:
@@ -223,13 +232,14 @@ if __name__ == "__main__":
 
     rospy.sleep(5)
     robot.start_recording()  # Ensure recording starts
-
+    rospy.sleep(2)
     # Publish vx and vy to cmd_vel
-    for vx_val, vy_val in zip(vx, vy):
-        robot.cmd_vel_Publisher(linear_x=vx_val/100, linear_y=vy_val/100, angular_z=0.0)
-        print(f"Publishing cmd_vel - Linear X: {vx_val/100}, Linear Y: {vy_val/100}")
-        rospy.sleep(0.1)  # Adjust sleep time to match the parabolic blend time step
-
+    for vx_val, vy_val in zip(v1, vy):
+        robot.cmd_vel_Publisher(linear_x=vx_val/250, linear_y=vy_val/250, angular_z=0.0)
+        print(f"Publishing cmd_vel - Linear X: {vx_val/250}, Linear Y: {vy_val/250}")
+        robot.rate.sleep()  # Adjust sleep time to match the parabolic blend time step
+    robot.move_in_triangle()
+    rospy.sleep(3)
     robot.stop_recording()  # Ensure recording stops
 
 
