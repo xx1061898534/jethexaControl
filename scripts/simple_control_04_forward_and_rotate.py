@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+import math
 import time
 import rospy
 import nav_msgs.msg as nav_msgs
@@ -19,6 +20,7 @@ from jethexa_controller import jethexa, build_in_pose, config
 from jethexa_controller.z_voltage_publisher import VoltagePublisher
 from jethexa_controller.z_joint_states_publisher import JointStatesPublisher
 import geometry_msgs.msg
+from trajectory import parabolicBlends
 
 class jetHexaBasicMotion:
     def __init__(self, output_file):
@@ -36,6 +38,7 @@ class jetHexaBasicMotion:
         self.csv_initialized = False  # Track if the CSV header is written
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
         rospy.loginfo("Subscribed to /gazebo/model_states")
+        #self.rate = rospy.Rate(25)  # Set rate to 25 Hz
 
     def forward(self,step):
         msg=Traveling()
@@ -119,12 +122,12 @@ class jetHexaBasicMotion:
 
 
     def cmd_vel_Publisher(self, linear_x, linear_y, angular_z):
-        msg= geometry_msgs.msg.Twist()
-        msg.linear.x=linear_x
-        msg.linear.y=linear_y
-        msg.angular.z=angular_z
-        #rospy.sleep(1)
+        msg = geometry_msgs.msg.Twist()
+        msg.linear.x = linear_x
+        msg.linear.y = linear_y
+        msg.angular.z = angular_z
         self.vel_pub.publish(msg)
+       # self.rate.sleep()  # Ensures publishing at 25 Hz
 
     def start_recording(self):
         self.recording = True
@@ -135,6 +138,7 @@ class jetHexaBasicMotion:
         rospy.loginfo("Recording stopped")
 
     def model_states_callback(self, data):
+        #rate = rospy.Rate(10)  # Set rate to 10 Hz
         if not self.recording:
             return
         try:
@@ -160,6 +164,7 @@ class jetHexaBasicMotion:
                         break  # Exit loop after finding the robot
         except Exception as e:
             rospy.logerr(f"Failed to write data to file: {e}")
+        rospy.sleep(0.1)
 
     def execute_motion_sequence(self):
         self.start_recording()  # Start recording
@@ -199,12 +204,32 @@ class jetHexaBasicMotion:
         rospy.loginfo("Finished triangular movement")
 
 if __name__ == "__main__":
-    output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data.csv"#/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts
+    output_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/model_states_data_1.csv"
+    trajectory_file = "/home/hiwonder/jethexa_vm/src/jethexa_planning/scripts/trajectory_data.csv"  # New CSV file for x1, y1
     robot = jetHexaBasicMotion(output_file)
-    rospy.sleep(1)
+    x1, vx, t1 = parabolicBlends([0, 0,0, 100, 0], [10,20, 20, 20], 3, 0.1)
+    y1, vy, t2 = parabolicBlends([0, 0,50, 0, 0], [10, 20, 20, 20], 3, 0.1)
+
+    # Record x1 and y1 to a new CSV file
+    try:
+        with open(trajectory_file, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['X1', 'Y1'])  # Write header
+            for x, y in zip(x1, y1):
+                writer.writerow([x, y])  # Write x1 and y1 values
+        rospy.loginfo(f"Trajectory data saved to {trajectory_file}")
+    except Exception as e:
+        rospy.logerr(f"Failed to write trajectory data to file: {e}")
+
+    rospy.sleep(5)
     robot.start_recording()  # Ensure recording starts
-    #robot.execute_motion_sequence()
-    robot.move_in_triangle()
+
+    # Publish vx and vy to cmd_vel
+    for vx_val, vy_val in zip(vx, vy):
+        robot.cmd_vel_Publisher(linear_x=vx_val/100, linear_y=vy_val/100, angular_z=0.0)
+        print(f"Publishing cmd_vel - Linear X: {vx_val/100}, Linear Y: {vy_val/100}")
+        rospy.sleep(0.1)  # Adjust sleep time to match the parabolic blend time step
+
     robot.stop_recording()  # Ensure recording stops
 
 
