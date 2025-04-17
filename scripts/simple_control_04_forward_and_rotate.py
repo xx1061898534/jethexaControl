@@ -38,7 +38,7 @@ class jetHexaBasicMotion:
         self.csv_initialized = False  # Track if the CSV header is written
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_states_callback)
         rospy.loginfo("Subscribed to /gazebo/model_states")
-        self.rate = rospy.Rate(10)  # Set rate to 25 Hz
+        self.rate = rospy.Rate(10)  # Set rate to 10 Hz
 
     def forward(self,step):
         msg=Traveling()
@@ -215,8 +215,8 @@ if __name__ == "__main__":
     robot = jetHexaBasicMotion(output_file)
     #x1, vx, t1 = parabolicBlends([0, 0, 0.5, 0,  0], [10,20, 20, 20], 0.01, 0.1)
     #y1, vy, t2 = parabolicBlends([0, 0, 0,  1, 0], [10, 20, 20, 20], 0.01, 0.1)
-    x1,v1, t1 = parabolicBlends([0,300*math.cos(math.radians(234)), 100*math.cos(math.radians(198)),300*math.cos(math.radians(162)), 100*math.cos(math.radians(126)), 300*math.cos(math.radians(90)), 100*math.cos(math.radians(54)), 300*math.cos(math.radians(18)), 100*math.cos(math.radians(342)),300*math.cos(math.radians(306)),0 ], [10,10,10,10,10,10,10,10,10,10], 3, 0.04)
-    y1,vy, t2 = parabolicBlends([-100,300*math.sin(math.radians(234)), 100*math.sin(math.radians(198)),300*math.sin(math.radians(162)), 100*math.sin(math.radians(126)), 300*math.sin(math.radians(90)), 100*math.sin(math.radians(54)), 300*math.sin(math.radians(18)), 100*math.sin(math.radians(342)),300*math.sin(math.radians(306)),-100], [10,10,10,10,10,10,10,10,10,10], 3, 0.04)  
+    x1,v1, t1 = parabolicBlends([0,300*math.cos(math.radians(234)), 100*math.cos(math.radians(198)),300*math.cos(math.radians(162)), 100*math.cos(math.radians(126)), 300*math.cos(math.radians(90)), 100*math.cos(math.radians(54)), 300*math.cos(math.radians(18)), 100*math.cos(math.radians(342)),300*math.cos(math.radians(306)),0 ], [20,20,20,20,20,20,20,20,20,20], 5, 0.1)
+    y1,vy, t2 = parabolicBlends([-100,300*math.sin(math.radians(234)), 100*math.sin(math.radians(198)),300*math.sin(math.radians(162)), 100*math.sin(math.radians(126)), 300*math.sin(math.radians(90)), 100*math.sin(math.radians(54)), 300*math.sin(math.radians(18)), 100*math.sin(math.radians(342)),300*math.sin(math.radians(306)),-100], [20,20,20,20,20,20,20,20,20,20], 5, 0.1)  
    
 
     # Record x1 and y1 to a new CSV file
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         robot.cmd_vel_Publisher(linear_x=vx_val/250, linear_y=vy_val/250, angular_z=0.0)
         print(f"Publishing cmd_vel - Linear X: {vx_val/250}, Linear Y: {vy_val/250}")
         robot.rate.sleep()  # Adjust sleep time to match the parabolic blend time step
-    robot.move_in_triangle()
+    #robot.move_in_triangle()
     rospy.sleep(3)
     robot.stop_recording()  # Ensure recording stops
 
